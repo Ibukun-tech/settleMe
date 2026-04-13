@@ -2,8 +2,8 @@ import app from "./app.js";
 import { connectQueue } from "./common/infrastructure/queue.js";
 import { connectDatabase } from "./common/infrastructure/database.js";
 import logger from "./common/logger/logger.js";
-import { startConsumer } from "./features/ledger/worker/consumer.js";
-import { models } from "./features/entities/index.js";
+import { startConsumer } from "./module/ledger/worker/consumer.js";
+// import { models } from "./features/entities/index.js";
 const startServer = async () => {
   try {
     await connectDatabase();
