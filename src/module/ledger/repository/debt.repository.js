@@ -55,7 +55,14 @@ class DebtRepository {
   async findByIdWithLock(debtId, transaction) {
     return await Debt.findByPk(debtId, { lock: true, transaction });
   }
-
+  async updateStatusWithOutTransaction(debtId, status) {
+    console.log(status);
+    const [affectedRows] = await Debt.update(
+      { ...status },
+      { where: { id: debtId } },
+    );
+    return affectedRows > 0;
+  }
   async updateStatus(debtId, status, transaction) {
     const [affectedRows] = await Debt.update(
       { status },

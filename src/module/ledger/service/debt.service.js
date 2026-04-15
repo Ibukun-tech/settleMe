@@ -11,6 +11,7 @@ import debtRepository from "../repository/debt.repository.js";
 import userRepository from "../../user/repository/user.repository.js";
 import {
   publishDebtCreated,
+  publishDebtDisputed,
   publishDebtConfirmed,
 } from "../../../common/infrastructure/publisherToQueue.js";
 
@@ -24,6 +25,7 @@ class DebtService {
     try {
       return await fn();
     } catch (error) {
+      this.logger.error(`Error in DebtService: ${error}`);
       if (
         error instanceof ConflictError ||
         error instanceof NotFoundError ||
@@ -168,7 +170,7 @@ class DebtService {
           "you have not created your profile go and do so",
         );
       }
-      const debt = await this.debtRepository.findById(debtId);
+      const debt = await this.debtRepository.findByDebtId(debtId);
       if (!debt) throw new NotFoundError("Debt not found");
       if (debt.status !== DEBT_STATUS.PENDING_CONFIRMATION) {
         throw new BadRequestError(
@@ -178,7 +180,7 @@ class DebtService {
       if (debt?.borrower_id !== profile?.id) {
         throw new ForbiddenError("Only the borrower can confirm a debt");
       }
-      await this.debtRepository.updateStatus(debtId, {
+      await this.debtRepository.updateStatusWithOutTransaction(debtId, {
         status: DEBT_STATUS.ACTIVE,
       });
       // (debt_id, lender_profile_id, borrower_first_name, amount);
@@ -228,6 +230,7 @@ class DebtService {
       }
       const debt = await this.debtRepository.findByDebtId(debtId);
       if (!debt) throw new NotFoundError("Debt not found");
+      this.logger.info(`Debt found: ${JSON.stringify(debt)}`);
       if (
         ![
           DEBT_STATUS.PENDING_CONFIRMATION,
@@ -292,6 +295,20 @@ export default new DebtService();
 // 	"email": "ibk13232325@gmail.com",
 //     "password":"Ibukun@1234.ywywy"
 // }
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+//   .eyJzdWIiOiIxYTY3ZTdjYS0wMjk5LTRlMjEtYjE0Ni1iNzNjYjg1YWViYWQiLCJlbWFpbCI6ImliazEzMjMyMzI1QGdtYWlsLmNvbSIsImlhdCI6MTc3NjE4NjI4MiwiZXhwIjoxNzc2MjcyNjgyfQ
+//   .EKQK2PYuQI0WMqtRQxuatAMWkF9nier2dIOxqvMwars;
+// "profile": {
+//             "id": "f5a01e80-c16b-4e9e-9f8c-e2b899591c43",
+//             "first_name": "ibk",
+//             "last_name": "oye",
+//             "phone_number": "+2348034567218",
+//             "avatar_url": null,
+//             "sme_tag": "ibk_kni2ts",
+//             "created_at": "2026-04-06T22:32:10.311Z",
+//             "updated_at": "2026-04-06T22:32:10.311Z"
+//         }
+
 // another user
 // {
 // 	"email": "ibk132323215@gmail.com",

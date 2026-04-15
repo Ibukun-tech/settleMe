@@ -61,7 +61,7 @@ const handleDebtDisputed = async (msg, channel) => {
       payload,
     );
   }
-  const debt = await debtRepository.findById(debt_id);
+  const debt = await debtRepository.findByDebtId(debt_id);
   if (!debt) {
     logger.info(
       { debt_id },

@@ -49,7 +49,7 @@ const handleDebtSettled = async (msg, channel) => {
   ) {
     return deadLetter(channel, msg, "missing required fields", payload);
   }
-  const debt = await debtRepository.findById(debt_id);
+  const debt = await debtRepository.findByDebtId(debt_id);
   if (!debt) {
     logger.info(
       { debt_id },
@@ -160,7 +160,7 @@ const handleDebtSettled = async (msg, channel) => {
     return channel.ack(msg);
   }
   try {
-    (notificationRepository.storeBatch(rowsToInsert), channel.ack(msg));
+    (await notificationRepository.storeBatch(rowsToInsert), channel.ack(msg));
     logger.info(
       { debt_id, rows: rowsToInsert.length },
       "consumer: debt.settled notifications written and message acked",

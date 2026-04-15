@@ -21,19 +21,23 @@ import {
 
 const router = Router();
 
+// WORKING
 router.post("/create-debt", authenticate, validate(createDebtDto), createDebt);
+// WORKING
 router.get(
   "/my-debts",
   authenticate,
   validate(getUserDebtsDto, "query"),
   getUserDebts,
 );
+// WORKING
 router.get(
   "/debts/:id",
   authenticate,
   validate(getDebtByIdDto, "params"),
   getDebtById,
 );
+// Working
 router.patch(
   "/debts/:id/confirm",
   authenticate,

@@ -4,11 +4,13 @@ import handeleDebtCreated from "./DebtWorkers/handleDebt.js";
 import handleDebtConfirmed from "./DebtWorkers/confirmDebt.js";
 import handleDebtDisputed from "./DebtWorkers/disputeDebt.js";
 import handleDebtSettled from "./DebtWorkers/settleDebt.js";
+import handleRepaymentConfirm from "./repaymentWorker/repaymentConfirm.js";
 const Handlers = {
   "debt.created": handeleDebtCreated,
   "debt.confirmed": handleDebtConfirmed,
   "debt.disputed": handleDebtDisputed,
   "debt.settled": handleDebtSettled,
+  "repayment.confirmed": handleRepaymentConfirm,
 };
 
 const handleMessage = async (msg, channel) => {

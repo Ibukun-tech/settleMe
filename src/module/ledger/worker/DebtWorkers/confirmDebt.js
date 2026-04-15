@@ -34,7 +34,7 @@ const handleDebtConfirmed = async (msg, channel) => {
   if (!debt_id || !lender_profile_id || !borrower_first_name || !amount) {
     return deadLetter(channel, msg, "missing required fields", payload);
   }
-  const debt = await debtRepository.findById(debt_id);
+  const debt = await debtRepository.findByDebtId(debt_id);
   if (!debt) {
     logger.info(
       { debt_id },

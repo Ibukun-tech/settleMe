@@ -16,6 +16,9 @@ class RepaymentRepository {
   async create(data, transaction) {
     return await Repayment.create(data, { transaction });
   }
+  async findById(repaymentId) {
+    return await Repayment.findByPk(repaymentId);
+  }
   async findPendingByDebitId(debitId, transaction) {
     return await Repayment.findOne({
       where: {
@@ -24,6 +27,12 @@ class RepaymentRepository {
       },
       transaction,
     });
+  }
+  async sumConfirmedByDebitIdWithoutTransaction(debitId) {
+    const total = await Repayment.sum("amount", {
+      where: { debt_id: debitId, status: REPAYMENT_STATUS.CONFIRMED },
+    });
+    return total ?? 0;
   }
   async sumConfirmedByDebtId(debtId, transaction) {
     const total = await Repayment.sum("amount", {

@@ -10,6 +10,9 @@ class NotificationRepository {
     });
   }
 
+  async createWithoutTransaction(data) {
+    return await Notification.create(data);
+  }
   async create(data, transaction) {
     return await Notification.create(data, { transaction });
   }
