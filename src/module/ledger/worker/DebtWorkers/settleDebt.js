@@ -108,6 +108,9 @@ const handleDebtSettled = async (msg, channel) => {
         )
       : null,
   ]);
+  const lenderAlreadyExists = !!notifyLenderExist;
+  const borrowerAlreadyExists = !!notifyBorrowerExist;
+
   const dbAmount = parseFloat(debt.amount);
   const payloadAmount = parseFloat(total_amount);
   if (dbAmount !== payloadAmount) {
