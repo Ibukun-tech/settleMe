@@ -51,8 +51,10 @@ class RepaymentService {
       const repayment = await this.repaymentRepsoitory.RepaymentTransaction(
         debtId,
         profile,
+        amount,
       );
-      // I am still coming here to work on this queue I need to know the implication before I swallow a system lieke this honestly
+      // I am still coming here to work on this queue I need to know the implication before I swallow a system  error like this honestly
+      // because what if my queue is down and I am not able to send it to my  queue to be processed just because I dont want my overall system to be down
       try {
         await publishRepaymentCreated({
           debt_id: debtId,
@@ -60,7 +62,7 @@ class RepaymentService {
           lender_profile_id: repayment.debt.lender_id,
           borrower_first_name: profile.first_name,
           amount_paid: amount,
-          remaining_balance: repayment.remaining - amount,
+          remaining_balance: repayment.remaining,
         });
       } catch (err) {
         this.logger.error(
@@ -97,35 +99,37 @@ class RepaymentService {
         repaymentId,
         profile,
       );
-      // try {
-      //   await publishRepaymentConfirmed({
-      //     debt_id: debtId,
-      //     repayment_id: repaymentId,
-      //     lender_first_name: profile.first_name,
-      //     borrower_profile_id: result.debt.borrower_id,
-      //     amount_paid: result.repayment.amount,
-      //     remaining_balance: result.remaining,
-      //   });
 
-      //   if (result.isSettled) {
-      //     const borrowerProfile = await this.userRepository.findProfileById(
-      //       result.debt.borrower_id,
-      //     );
-      //     await publishDebtSettled({
-      //       debt_id: debtId,
-      //       lender_profile_id: result.debt.lender_id,
-      //       borrower_profile_id: result.debt.borrower_id,
-      //       lender_first_name: profile.first_name,
-      //       borrower_first_name: borrowerProfile?.first_name ?? null,
-      //       total_amount: result.debt.amount,
-      //     });
-      //   }
-      // } catch (err) {
-      //   this.logger.error(
-      //     { err },
-      //     "repayment.confirmed publish failed — repayment is saved, notification skipped",
-      //   );
-      // }
+      try {
+        await publishRepaymentConfirmed({
+          debt_id: debtId,
+          repayment_id: repaymentId,
+          lender_first_name: profile.first_name,
+          borrower_profile_id: result.debt.borrower_id,
+          amount_paid: result.repayment.amount,
+          remaining_balance: result.remaining,
+        });
+        if (result.isSettled) {
+          // This is rubbish here there is a way I can get everything in one call from the database by using a singl join
+          //  instead of making muliple calls to the database by causing a N+1 problem here, I will work on this later but for now I just want to get the functionality out there and then optimize later
+          const borrowerProfile = await this.userRepository.findProfileById(
+            result.debt.borrower_id,
+          );
+          await publishDebtSettled({
+            debt_id: debtId,
+            lender_profile_id: result.debt.lender_id,
+            borrower_profile_id: result.debt.borrower_id,
+            lender_first_name: profile.first_name,
+            borrower_first_name: borrowerProfile?.first_name ?? null,
+            total_amount: result.debt.amount,
+          });
+        }
+      } catch (err) {
+        this.logger.error(
+          { err },
+          "repayment.confirmed publish failed — repayment is saved, notification skipped",
+        );
+      }
 
       return {
         message: "Repayment confirmed successfully",

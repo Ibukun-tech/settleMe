@@ -41,7 +41,7 @@ class RepaymentRepository {
     });
     return total ?? 0;
   }
-  async RepaymentTransaction(debtId, profile) {
+  async RepaymentTransaction(debtId, profile, amount) {
     return await sequelize.transaction(async (t) => {
       const debt = await this.debtRepository.findByIdWithLock(debtId, t);
       if (!debt) throw new NotFoundError("Debt not found");
@@ -68,6 +68,8 @@ class RepaymentRepository {
       }
 
       const totalPaid = await this.sumConfirmedByDebtId(debtId, t);
+      // This should be done inside database calculations because running multiple request can still nake a small changes to this thing
+      // about how the money is being paid and the balance is being calculated, I am not sure if this is the best way to do it but I will come back to this later and see if I can make it better by doing the calculation inside the database transaction instead of doing it in the application layer like this
       const remaining = parseFloat(debt.amount) - parseFloat(totalPaid);
 
       if (amount > remaining) {
