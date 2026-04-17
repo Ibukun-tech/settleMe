@@ -7,11 +7,11 @@ const EXCHANGE = [
     type: "topic",
     options: { durable: true },
   },
-  {
-    name: "ledger_repayment_exchange",
-    type: "topic",
-    options: { durable: true },
-  },
+  // {
+  //   name: "ledger_repayment_exchange",
+  //   type: "topic",
+  //   options: { durable: true },
+  // },
   {
     name: "audit_all_exchange",
     type: "topic",
@@ -71,15 +71,21 @@ const assertTopology = async () => {
       logger.info({ exchange: exchange.name }, "rabbitmq: exchange asserted");
     }
 
-    for (let i = 0; i < QUEUES.length; i++) {
+    for (let i = 0; i < QUEUES.length - 1; i++) {
       const queue = QUEUES[i];
       await channel.assertQueue(queue.name, { durable: true });
-      await channel.bindQueue(queue.name, EXCHANGE[i].name, queue.bindingKey);
+      await channel.bindQueue(queue.name, EXCHANGE[0].name, queue.bindingKey);
       logger.info(
         { queue: queue.name, bindingKey: queue.bindingKey },
         "rabbitmq: queue asserted and bound",
       );
     }
+    await channel.assertQueue(QUEUES[2].name, { durable: true });
+    await channel.bindQueue(
+      QUEUES[2].name,
+      EXCHANGE[1].name,
+      QUEUES[2].bindingKey,
+    );
     logger.info("rabbitmq: topology assertion complete");
   } catch (err) {
     logger.error({ err }, "rabbitmq: failed to assert topology");

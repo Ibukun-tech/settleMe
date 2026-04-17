@@ -156,6 +156,14 @@ const repaymentDisputed = async (msg, channel) => {
         )
       : Promise.resolve(true),
   ]);
+  if (lenderNotifExists && borrowerNotifExists) {
+    logger.info(
+      { repayment_id },
+      "consumer: duplicate message, both notifications already created, skipping",
+    );
+    return channel.ack(msg);
+  }
+
   const dbAmount = parseFloat(repaymentExist.amount);
   if (parseFloat(amount) !== dbAmount) {
     logger.warn(
