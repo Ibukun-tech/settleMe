@@ -2,7 +2,7 @@ import logger from "../../../../common/logger/logger.js";
 import { formatAmount, deadLetter } from "./utilDebt.js";
 import debtRepository from "../../repository/debt.repository.js";
 import userRepository from "../../../user/repository/user.repository.js";
-import notificationRepository from "../../../repository/notification.repository.js";
+import notificationRepository from "../../../notifications/repository/notification.repository.js";
 import {
   NOTIFICATION_REFERENCE_TYPE,
   NOTIFICATION_TYPE,

@@ -1,13 +1,19 @@
+import "./common/infrastructure/instrumentation.js";
 import "./common/config/index.js";
 import express from "express";
 import { errorHandler } from "../src/common/middleware/error.js";
 import authRouter from "./module/auth/routes/auth.route.js";
 import userRouter from "./module/user/routes/user.routes.js";
 import ledgerRouter from "./module/ledger/routes/ledger.route.js";
+import notificationRouter from "./module/notifications/routes/notification.route.js";
+import { attachTraceId } from "./common/middleware/traceContext.js";
 const app = express();
 app.use(express.json());
+app.use(attachTraceId);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/ledger", ledgerRouter);
+
+app.use("/api/v1/notifications", notificationRouter);
 app.use(errorHandler);
 export default app;

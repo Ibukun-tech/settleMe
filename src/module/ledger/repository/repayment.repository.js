@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { sequelize } from "../../../common/infrastructure/database.js";
+import db from "../../../common/infrastructure/dbInit.js";
 import { REPAYMENT_STATUS, DEBT_STATUS } from "../enum/index.js";
 import { models } from "../../entities/index.js";
 import {
@@ -42,7 +42,7 @@ class RepaymentRepository {
     return total ?? 0;
   }
   async RepaymentTransaction(debtId, profile, amount) {
-    return await sequelize.transaction(async (t) => {
+    return await db.instance.transaction(async (t) => {
       const debt = await this.debtRepository.findByIdWithLock(debtId, t);
       if (!debt) throw new NotFoundError("Debt not found");
 
@@ -109,7 +109,7 @@ class RepaymentRepository {
     return affectedRows > 0;
   }
   async confirmRepaymentTransaction(debtId, repaymentId, profile) {
-    return await sequelize.transaction(async (t) => {
+    return await db.instance.transaction(async (t) => {
       const debt = await this.debtRepository.findByIdWithLock(debtId, t);
       if (!debt) throw new NotFoundError("Debt not found");
 
@@ -166,7 +166,7 @@ class RepaymentRepository {
     });
   }
   async disputeRepaymentTransaction(debtId, repaymentId, profile) {
-    return await sequelize.transaction(async (t) => {
+    return await db.instance.transaction(async (t) => {
       const debt = await this.debtRepository.findByIdWithLock(debtId, t);
       if (!debt) throw new NotFoundError("Debt not found");
 

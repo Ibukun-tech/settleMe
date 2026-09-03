@@ -7,7 +7,7 @@ import { DEBT_STATUS } from "../../enum/debt.enum.js";
 import userRepository from "../../../user/repository/user.repository.js";
 import { formatAmount } from "../DebtWorkers/utilDebt.js";
 import { NOTIFICATION_TYPE } from "../../../commonFeature/notification.enum.js";
-import notificationRepository from "../../../repository/notification.repository.js";
+import notificationRepository from "../../../notifications/repository/notification.repository.js";
 
 const repaymentDisputed = async (msg, channel) => {
   if (!msg) {

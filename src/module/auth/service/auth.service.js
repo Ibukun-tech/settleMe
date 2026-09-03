@@ -8,6 +8,7 @@ import {
   AuthenticationError,
   ForbiddenError,
 } from "../../../common/middleware/error.js";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 import { OTP_TYPE } from "../enum/otp.enum.js";
 import {
@@ -23,6 +24,41 @@ class AuthService {
     this.authRepository = authRepository;
     this.logger = logger;
     this.mailService = mailService;
+    this.tracer = trace.getTracer("settleMe-auth-service");
+  }
+  async withSpan(name, attributes, fn) {
+    console.log(fn);
+    console.log("typeof fn:", typeof fn);
+    console.log("fn value:", fn);
+    let span;
+    try {
+      span = this.tracer.startSpan(name, { attributes });
+    } catch {
+      return await fn();
+    }
+
+    try {
+      const result = await fn();
+
+      logger.info(
+        `Operation ${name} completed successfully`,
+        attributes,
+        span.spanContext(),
+      );
+      span.setStatus({ code: SpanStatusCode.OK });
+      console.log("result:", result);
+      return result;
+    } catch (error) {
+      console.log("withSpan caught error:", error);
+      console.log("error name:", error.name);
+      console.log("error message:", error.message);
+
+      span.recordException(error);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
+      throw error;
+    } finally {
+      span.end();
+    }
   }
   async handleErrors(fn) {
     try {
@@ -37,34 +73,61 @@ class AuthService {
       ) {
         throw error;
       }
+
       this.logger.error(`Unexpected error in AuthService: ${error}`);
       throw new InternalError("An unexpected error occurred");
     }
   }
   async register(registerDto) {
-    return await this.handleErrors(async () => {
-      const { email, password } = registerDto;
+    return await this.withSpan(
+      "register_user",
+      { operation: "registering user", user_email: registerDto.email },
+      async () => {
+        return await this.handleErrors(async () => {
+          this.logger.info(
+            `Starting registration for email: ${registerDto.email}`,
+          );
+          const { email, password } = registerDto;
+          this.logger.info(`Checking if email ${email} is already registered`);
+          const existing = await authRepository.findByEmail(email);
+          if (existing) {
+            throw new ConflictError("Email is already registered");
+          }
+          this.logger.info(
+            `Email ${email} is available, proceeding with registration`,
+          );
+          const passwordHash = await generatePasswordHash(password);
+          this.logger.info(
+            `Password hash generated for email ${email}, creating user`,
+          );
 
-      const existing = await authRepository.findByEmail(email);
-      if (existing) {
-        throw new ConflictError("Email is already registered");
-      }
+          this.logger.info(`Creating user with email ${email}`);
+          const user = await authRepository.create(email, passwordHash);
 
-      const passwordHash = await generatePasswordHash(password);
+          this.logger.info(`User created with email ${email}, generating OTP`);
+          // await this.generateAndSendOtp(
+          //   user,
+          //   user?.email,
+          //   OTP_TYPE.EMAIL_VERIFICATION,
+          // );
 
-      const user = await authRepository.create(email, passwordHash);
-      await this.generateAndSendOtp(
-        user,
-        user?.email,
-        OTP_TYPE.EMAIL_VERIFICATION,
-      );
-      return {
-        message: "Registration successful check your email for the OTP code",
-        data: {
-          email: user.email,
-        },
-      };
-    });
+          console.log({
+            message:
+              "Registration successful check your email for the OTP code",
+            data: {
+              email: user.email,
+            },
+          });
+          return {
+            message:
+              "Registration successful check your email for the OTP code",
+            data: {
+              email: user.email,
+            },
+          };
+        });
+      },
+    );
   }
   async verify(verifyDto) {
     return await this.handleErrors(async () => {
@@ -125,7 +188,10 @@ class AuthService {
 
       await this.authRepository.invalidateOtpsByUserAndType(user.id, otpType);
       await this.generateAndSendOtp(user, user.email, otpType);
-
+      console.log({
+        message: "OTP resent successfully",
+        data: { email: user.email },
+      });
       return {
         message: "OTP resent successfully",
         data: { email: user.email },

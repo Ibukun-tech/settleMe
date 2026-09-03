@@ -1,4 +1,4 @@
-import { sequelize } from "../../../common/infrastructure/database.js"; // add this
+import db from "../../../common/infrastructure/dbInit.js";
 import { where } from "sequelize";
 import { models } from "../../entities/index.js";
 
@@ -37,7 +37,7 @@ class AuthRepository {
     });
   }
   async verifyOtp(userId, otpId, shouldVerifyUser) {
-    return await sequelize.transaction(async (t) => {
+    return await db.instance.transaction(async (t) => {
       await Otp.update(
         { is_used: true, used_at: new Date() },
         { where: { user_id: userId, id: otpId }, transaction: t },
@@ -69,7 +69,7 @@ class AuthRepository {
     );
   }
   async resetPassword(userId, otpId, newPasswordHash) {
-    return await sequelize.transaction(async (t) => {
+    return await db.instance.transaction(async (t) => {
       await Otp.update(
         { is_used: true, used_at: new Date() },
         { where: { id: otpId, user_id: userId }, transaction: t },

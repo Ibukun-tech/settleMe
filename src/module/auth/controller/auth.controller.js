@@ -5,6 +5,7 @@ export const register = async (req, res) => {
   try {
     const register = req.body;
     const { message, data } = await authService.register(register);
+    console.log(message, data);
     return ApiResponse.created(res, data, message);
   } catch (error) {
     throw error;

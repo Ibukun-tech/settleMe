@@ -6,7 +6,7 @@ import { REPAYMENT_STATUS } from "../../enum/repayment.enum.js";
 import userRepository from "../../../user/repository/user.repository.js";
 import { formatAmount } from "../DebtWorkers/utilDebt.js";
 import { NOTIFICATION_TYPE } from "../../../commonFeature/notification.enum.js";
-import notificationRepository from "../../../repository/notification.repository.js";
+import notificationRepository from "../../../notifications/repository/notification.repository.js";
 const repaymentConfirm = async (msg, channel) => {
   if (!msg) {
     logger.warn(

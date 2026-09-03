@@ -21,6 +21,13 @@ export const User = (sequelize, DataTypes) => {
       timestamps: true,
       createdAt: "created_at",
       updatedAt: false,
+      indexes: [
+        {
+          unique: true,
+          name: "users_email_idx",
+          fields: ["email"],
+        },
+      ],
     },
   );
 };

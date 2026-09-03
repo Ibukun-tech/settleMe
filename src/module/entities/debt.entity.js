@@ -1,5 +1,3 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../../common/infrastructure/database.js";
 import { DEBT_STATUS } from "../ledger/enum/debt.enum.js";
 
 export const Debt = (sequelize, DataTypes) => {
